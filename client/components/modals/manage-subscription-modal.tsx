@@ -73,23 +73,27 @@ export default function ManageSubscriptionModal({
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div
+        role="dialog"
+        aria-labelledby="manage-modal-title"
+        aria-describedby="manage-modal-desc"
+        aria-modal="true"
         className={`${darkMode ? "bg-[#2D3748] text-[#F9F6F2]" : "bg-white text-[#1E2A35]"} rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden`}
       >
         {/* Header with gradient */}
         <div className="bg-gradient-to-r from-[#1E2A35] to-[#2D3748] p-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-white">Manage Subscription</h2>
-            <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
-              <X className="w-5 h-5 text-white" />
+            <h2 id="manage-modal-title" className="text-2xl font-bold text-white">Manage Subscription</h2>
+            <button onClick={onClose} aria-label="Close manage subscription dialog" className="p-2 hover:bg-white/10 rounded-lg transition-colors">
+              <X aria-hidden="true" className="w-5 h-5 text-white" />
             </button>
           </div>
         </div>
 
         <div className="p-6">
           {/* Subscription Info Card */}
-          <div className={`mb-6 p-5 ${darkMode ? "bg-[#1E2A35]" : "bg-[#F9F6F2]"} rounded-xl`}>
+          <div id="manage-modal-desc" className={`mb-6 p-5 ${darkMode ? "bg-[#1E2A35]" : "bg-[#F9F6F2]"} rounded-xl`}>
             <div className="flex items-center gap-4 mb-4">
-              <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center shadow-md">
+              <div aria-hidden="true" className="w-16 h-16 bg-white rounded-xl flex items-center justify-center shadow-md">
                 <span className="text-3xl">{subscription.icon}</span>
               </div>
               <div className="flex-1">

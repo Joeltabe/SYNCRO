@@ -402,17 +402,20 @@ export default function AddSubscriptionModal({ onAdd, onClose, darkMode }: { onA
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div
+        role="dialog"
+        aria-labelledby="add-modal-title"
+        aria-modal="true"
         className={`${darkMode ? "bg-[#2D3748] text-[#F9F6F2]" : "bg-white text-[#1E2A35]"} rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col`}
       >
         {/* Header */}
         <div className="bg-gradient-to-r from-[#1E2A35] to-[#2D3748] p-6">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold text-white">Add Subscription</h2>
+              <h2 id="add-modal-title" className="text-2xl font-bold text-white">Add Subscription</h2>
               <p className="text-sm text-gray-300 mt-1">Track all your subscriptions in one place</p>
             </div>
-            <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
-              <X className="w-5 h-5 text-white" />
+            <button onClick={onClose} aria-label="Close add subscription dialog" className="p-2 hover:bg-white/10 rounded-lg transition-colors">
+              <X aria-hidden="true" className="w-5 h-5 text-white" />
             </button>
           </div>
         </div>
@@ -422,12 +425,14 @@ export default function AddSubscriptionModal({ onAdd, onClose, darkMode }: { onA
             <>
               {/* Search Bar */}
               <div className="mb-4">
+                <label htmlFor="add-sub-search" className="sr-only">Search for a subscription service</label>
                 <div
                   className={`flex items-center gap-3 px-4 py-3 ${darkMode ? "bg-[#1E2A35]" : "bg-[#F9F6F2]"} rounded-lg`}
                 >
-                  <Search className="w-5 h-5 text-gray-400" />
+                  <Search aria-hidden="true" className="w-5 h-5 text-gray-400" />
                   <input
-                    type="text"
+                    id="add-sub-search"
+                    type="search"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search for subscriptions..."
@@ -436,11 +441,12 @@ export default function AddSubscriptionModal({ onAdd, onClose, darkMode }: { onA
                 </div>
               </div>
 
-              <div className="mb-6 flex gap-2 overflow-x-auto pb-2">
+              <div role="group" aria-label="Filter by category" className="mb-6 flex gap-2 overflow-x-auto pb-2">
                 {categories.map((cat) => (
                   <button
                     key={cat}
                     onClick={() => setSelectedCategory(cat)}
+                    aria-pressed={selectedCategory === cat}
                     className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
                       selectedCategory === cat
                         ? "bg-[#FFD166] text-[#1E2A35]"
@@ -455,11 +461,14 @@ export default function AddSubscriptionModal({ onAdd, onClose, darkMode }: { onA
               </div>
 
               {/* Popular Tools Grid */}
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
+              <div role="list" aria-label="Available subscriptions" className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
                 {filteredTools.map((tool) => (
                   <button
                     key={tool.name}
+                    role="listitem"
                     onClick={() => handleSelectTool(tool)}
+                    aria-pressed={selectedTool?.name === tool.name}
+                    aria-label={`${tool.name}, ${tool.subcategory}, $${tool.price}/month`}
                     className={`p-4 rounded-xl border-2 transition-all ${
                       selectedTool?.name === tool.name
                         ? "border-[#FFD166] bg-[#FFD166]/10"
@@ -471,7 +480,8 @@ export default function AddSubscriptionModal({ onAdd, onClose, darkMode }: { onA
                     <div className="flex items-center gap-3 mb-2">
                       <img
                         src={tool.logo || "/placeholder.svg"}
-                        alt={tool.name}
+                        alt=""
+                        aria-hidden="true"
                         className="w-8 h-8 rounded-lg object-contain bg-white p-1"
                       />
                       <div className="flex-1 text-left">
@@ -491,30 +501,33 @@ export default function AddSubscriptionModal({ onAdd, onClose, darkMode }: { onA
                   darkMode ? "border-[#374151] hover:border-[#FFD166]" : "border-gray-300 hover:border-[#1E2A35]"
                 } rounded-lg transition-colors`}
               >
-                <Plus className="w-4 h-4" />
+                <Plus aria-hidden="true" className="w-4 h-4" />
                 Add Custom Subscription
               </button>
             </>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4" noValidate>
               <div>
-                <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
-                  Subscription Name
+                <label htmlFor="custom-name" className={`block text-sm font-medium mb-2 ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
+                  Subscription Name <span aria-hidden="true">*</span>
                 </label>
                 <input
+                  id="custom-name"
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="e.g., Custom Tool"
+                  aria-required="true"
                   className={`w-full px-4 py-3 ${darkMode ? "bg-[#1E2A35] border-[#374151]" : "bg-white border-gray-300"} border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FFD166]`}
                 />
               </div>
 
               <div>
-                <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
+                <label htmlFor="custom-category" className={`block text-sm font-medium mb-2 ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
                   Category
                 </label>
                 <select
+                  id="custom-category"
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                   className={`w-full px-4 py-3 ${darkMode ? "bg-[#1E2A35] border-[#374151]" : "bg-white border-gray-300"} border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FFD166]`}
@@ -530,24 +543,27 @@ export default function AddSubscriptionModal({ onAdd, onClose, darkMode }: { onA
               </div>
 
               <div>
-                <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
-                  Monthly Price ($)
+                <label htmlFor="custom-price" className={`block text-sm font-medium mb-2 ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
+                  Monthly Price ($) <span aria-hidden="true">*</span>
                 </label>
                 <input
+                  id="custom-price"
                   type="number"
                   step="0.01"
                   value={formData.price}
                   onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                   placeholder="e.g., 20"
+                  aria-required="true"
                   className={`w-full px-4 py-3 ${darkMode ? "bg-[#1E2A35] border-[#374151]" : "bg-white border-gray-300"} border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FFD166]`}
                 />
               </div>
 
               <div>
-                <label className={`block text-sm font-medium mb-2 ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
+                <label htmlFor="custom-logo" className={`block text-sm font-medium mb-2 ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
                   Logo URL (optional)
                 </label>
                 <input
+                  id="custom-logo"
                   type="url"
                   value={formData.logo}
                   onChange={(e) => setFormData({ ...formData, logo: e.target.value })}
@@ -591,6 +607,7 @@ export default function AddSubscriptionModal({ onAdd, onClose, darkMode }: { onA
                       })
               }
               disabled={customMode ? !formData.name || !formData.price : !selectedTool}
+              aria-disabled={customMode ? !formData.name || !formData.price : !selectedTool}
               className="flex-1 px-4 py-3 bg-[#FFD166] text-[#1E2A35] rounded-lg font-semibold hover:bg-[#FFD166]/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Add to Dashboard

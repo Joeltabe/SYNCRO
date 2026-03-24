@@ -5,8 +5,8 @@
 
 import { type NextRequest } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { ApiErrors, type RequestContext } from './errors'
-import { ErrorCode } from './types'
+import { ApiErrors } from './errors'
+import { ErrorCode, type RequestContext } from './types'
 
 /**
  * Get authenticated user from request
@@ -32,7 +32,6 @@ export function createRequestContext(request: NextRequest, userId?: string): Req
   const requestId = request.headers.get('x-request-id') || crypto.randomUUID()
   const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || 
              request.headers.get('x-real-ip') || 
-             request.ip || 
              'unknown'
   const userAgent = request.headers.get('user-agent') || 'unknown'
 

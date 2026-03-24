@@ -12,6 +12,7 @@ import {
   Search,
   Info,
 } from "lucide-react"
+import { useEffect, useRef } from "react"
 import { EmptyState } from "@/components/ui/empty-state"
 
 interface NotificationsPanelProps {
@@ -31,6 +32,13 @@ export default function NotificationsPanel({
   darkMode,
   onResolveAction,
 }: NotificationsPanelProps) {
+  const closeButtonRef = useRef<HTMLButtonElement>(null)
+  const unreadCount = notifications?.filter((n) => !n.read).length ?? 0
+
+  useEffect(() => {
+    closeButtonRef.current?.focus()
+  }, [])
+
   const getNotificationIcon = (type: string) => {
     const iconClass = "w-5 h-5"
     switch (type) {
@@ -58,17 +66,22 @@ export default function NotificationsPanel({
   if (!notifications || notifications.length === 0) {
     return (
       <div
+        role="dialog"
+        aria-label="Notifications panel, no notifications"
+        aria-modal="true"
         className={`fixed right-0 top-0 h-full w-96 ${darkMode ? "bg-[#2D3748] border-[#374151]" : "bg-white border-gray-200"} border-l shadow-lg z-40 flex flex-col`}
       >
         <div
           className={`flex items-center justify-between p-6 border-b ${darkMode ? "border-[#374151]" : "border-gray-200"}`}
         >
-          <h3 className={`text-lg font-semibold ${darkMode ? "text-white" : "text-gray-900"}`}>Notifications</h3>
+          <h3 className={`text-lg font-semibold ${darkMode ? "text-white" : "text-gray-900"}`} id="notifications-title">Notifications</h3>
           <button
+            ref={closeButtonRef}
             onClick={onClose}
+            aria-label="Close notifications panel"
             className={`p-1 ${darkMode ? "hover:bg-[#374151]" : "hover:bg-gray-100"} rounded-lg`}
           >
-            <X className="w-5 h-5" />
+            <X className="w-5 h-5" aria-hidden="true" />
           </button>
         </div>
 
@@ -86,22 +99,39 @@ export default function NotificationsPanel({
 
   return (
     <div
+      role="dialog"
+      aria-labelledby="notifications-title"
+      aria-modal="true"
       className={`fixed right-0 top-0 h-full w-96 ${darkMode ? "bg-[#2D3748] border-[#374151]" : "bg-white border-gray-200"} border-l shadow-lg z-40 flex flex-col`}
     >
+      {/* aria-live region so new notifications are announced */}
+      <div aria-live="polite" aria-atomic="false" className="sr-only">
+        {unreadCount > 0 ? `${unreadCount} unread notification${unreadCount !== 1 ? "s" : ""}` : ""}
+      </div>
       <div
         className={`flex items-center justify-between p-6 border-b ${darkMode ? "border-[#374151]" : "border-gray-200"}`}
       >
-        <h3 className={`text-lg font-semibold ${darkMode ? "text-white" : "text-gray-900"}`}>Notifications</h3>
-        <button onClick={onClose} className={`p-1 ${darkMode ? "hover:bg-[#374151]" : "hover:bg-gray-100"} rounded-lg`}>
-          <X className="w-5 h-5" />
+        <h3 id="notifications-title" className={`text-lg font-semibold ${darkMode ? "text-white" : "text-gray-900"}`}>
+          Notifications
+          {unreadCount > 0 && <span className="sr-only">, {unreadCount} unread</span>}
+        </h3>
+        <button
+          ref={closeButtonRef}
+          onClick={onClose}
+          aria-label="Close notifications panel"
+          className={`p-1 ${darkMode ? "hover:bg-[#374151]" : "hover:bg-gray-100"} rounded-lg`}
+        >
+          <X className="w-5 h-5" aria-hidden="true" />
         </button>
       </div>
 
       <div className="flex-1 overflow-auto">
-        <div className="space-y-2 p-4">
+        <div role="list" aria-label="Notifications" className="space-y-2 p-4">
           {notifications.map((notification) => (
             <div
               key={notification.id}
+              role="listitem"
+              aria-label={`${notification.title}${!notification.read ? ", unread" : ""}`}
               className={`p-4 rounded-lg border transition-colors ${
                 notification.read
                   ? darkMode
@@ -113,10 +143,9 @@ export default function NotificationsPanel({
               }`}
             >
               <div className="flex items-start gap-3">
-                <div className={`flex-shrink-0 ${darkMode ? "text-[#FFD166]" : "text-[#1E2A35]"}`}>
+                <div aria-hidden="true" className={`flex-shrink-0 ${darkMode ? "text-[#FFD166]" : "text-[#1E2A35]"}`}>
                   {getNotificationIcon(notification.type)}
                 </div>
-                {/* </CHANGE> */}
                 <div className="flex-1">
                   <h4 className={`font-semibold text-sm ${darkMode ? "text-white" : "text-gray-900"}`}>
                     {notification.title}
@@ -133,7 +162,7 @@ export default function NotificationsPanel({
                       }}
                       className="mt-3 flex items-center gap-2 px-3 py-1.5 bg-[#FFD166] text-[#1E2A35] rounded-lg text-xs font-semibold hover:bg-[#FFD166]/90 transition-colors"
                     >
-                      <Plus className="w-3 h-3" />
+                      <Plus className="w-3 h-3" aria-hidden="true" />
                       Add to Dashboard
                     </button>
                   )}
@@ -189,6 +218,7 @@ export default function NotificationsPanel({
                 {!notification.read && (
                   <button
                     onClick={() => onMarkRead(notification.id)}
+                    aria-label={`Mark "${notification.title}" as read`}
                     className={`w-2 h-2 ${darkMode ? "bg-[#FFD166]" : "bg-blue-600"} rounded-full mt-1 flex-shrink-0 cursor-pointer hover:scale-110 transition-transform`}
                   />
                 )}

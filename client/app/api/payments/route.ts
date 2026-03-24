@@ -1,7 +1,7 @@
 import { type NextRequest } from "next/server"
 import Stripe from "stripe"
-import { createApiRoute, createSuccessResponse, validateRequestBody, RateLimiters } from "@/lib/api"
-import { HttpStatus, ApiErrors } from "@/lib/api/types"
+import { createApiRoute, createSuccessResponse, validateRequestBody, RateLimiters, ApiErrors } from "@/lib/api/index"
+import { HttpStatus } from "@/lib/api/types"
 import { z } from "zod"
 
 // Validation schema
@@ -18,7 +18,7 @@ function getStripeClient() {
     throw ApiErrors.internalError("Stripe is not configured. Please contact support.")
   }
   return new Stripe(apiKey, {
-    apiVersion: "2024-12-18.acacia",
+    apiVersion: "2025-09-30.clover",
   })
 }
 

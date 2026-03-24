@@ -25,8 +25,10 @@ export * from './env'
  * Helper to create a complete API route handler with all middleware
  */
 import { type NextRequest } from 'next/server'
-import { withErrorHandling, createSuccessResponse, type RequestContext } from './errors'
+import { NextResponse } from 'next/server'
+import { withErrorHandling, createSuccessResponse } from './errors'
 import { requireAuth, createRequestContext } from './auth'
+import { type RequestContext, type ApiResponse } from './types'
 import { RateLimiters } from './rate-limit'
 import { isMaintenanceMode } from './env'
 import { ApiErrors } from './errors'
@@ -35,7 +37,7 @@ type RouteHandler = (
   request: NextRequest,
   context: RequestContext,
   user?: Awaited<ReturnType<typeof requireAuth>>
-) => Promise<Response>
+) => Promise<NextResponse<ApiResponse>>
 
 type RouteOptions = {
   requireAuth?: boolean

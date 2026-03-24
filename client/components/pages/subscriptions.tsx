@@ -190,11 +190,14 @@ export default function SubscriptionsPage({
       {/* Search and Filters */}
       <div className="mb-6 flex gap-4">
         <div className="relative flex-1">
+          <label htmlFor="subscriptions-search" className="sr-only">Search subscriptions</label>
           <input
-            type="text"
+            id="subscriptions-search"
+            type="search"
             placeholder="Search subscriptions"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            aria-label="Search subscriptions"
             className={`w-full px-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 ${
               darkMode
                 ? "bg-[#2D3748] border-[#374151] text-white placeholder-gray-500 focus:ring-[#FFD166]"
@@ -202,12 +205,14 @@ export default function SubscriptionsPage({
             }`}
           />
           {isSearching && (
-            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+            <div aria-hidden="true" className="absolute right-3 top-1/2 transform -translate-y-1/2">
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#FFD166]"></div>
             </div>
           )}
         </div>
+        <label htmlFor="filter-email" className="sr-only">Filter by email</label>
         <select
+          id="filter-email"
           value={filterEmail}
           onChange={(e) => setFilterEmail(e.target.value)}
           className={`px-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 ${
@@ -222,7 +227,9 @@ export default function SubscriptionsPage({
             </option>
           ))}
         </select>
+        <label htmlFor="filter-category" className="sr-only">Filter by category</label>
         <select
+          id="filter-category"
           value={filterCategory}
           onChange={(e) => setFilterCategory(e.target.value)}
           className={`px-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 ${
@@ -237,7 +244,9 @@ export default function SubscriptionsPage({
             </option>
           ))}
         </select>
+        <label htmlFor="filter-status" className="sr-only">Filter by status</label>
         <select
+          id="filter-status"
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value)}
           className={`px-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 ${
@@ -252,7 +261,9 @@ export default function SubscriptionsPage({
             </option>
           ))}
         </select>
+        <label htmlFor="sort-by" className="sr-only">Sort subscriptions</label>
         <select
+          id="sort-by"
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
           className={`px-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 ${
@@ -266,6 +277,13 @@ export default function SubscriptionsPage({
           <option value="price-low">Price: Low to High</option>
           <option value="renewal">Renewal Soon</option>
         </select>
+      </div>
+
+      {/* Live region for search result count */}
+      <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+        {!isSearching && debouncedSearchTerm
+          ? `Showing ${filtered.length} of ${subscriptions.length} subscriptions`
+          : ""}
       </div>
 
       {/* Subscriptions List */}
@@ -354,20 +372,31 @@ function SubscriptionCard({
   isDuplicate,
   unusedInfo,
 }: SubscriptionCardProps) {
+  const statusLabel =
+    sub.status === "expiring"
+      ? `expiring in ${sub.renewsIn} days`
+      : sub.status === "trial"
+        ? "trial"
+        : "active"
+
   return (
     <div
       className={`${darkMode ? "bg-[#2D3748] border-[#374151]" : "bg-white border-gray-200"} border rounded-xl p-5 flex items-center justify-between`}
+      aria-label={`${sub.name}, ${sub.category}, $${sub.price}/month, ${statusLabel}${isDuplicate ? ", duplicate" : ""}${unusedInfo ? ", unused" : ""}`}
     >
       <div className="flex items-center gap-4 flex-1">
         {selectedSubscriptions && onToggleSelect && (
           <input
             type="checkbox"
+            id={`select-sub-${sub.id}`}
             checked={selectedSubscriptions.has(sub.id)}
             onChange={() => onToggleSelect(sub.id)}
+            aria-label={`Select ${sub.name}`}
             className="w-4 h-4 rounded"
           />
         )}
         <div
+          aria-hidden="true"
           className={`w-12 h-12 ${darkMode ? "bg-[#1E2A35]" : "bg-black"} rounded-lg flex items-center justify-center text-2xl`}
         >
           {sub.icon}
@@ -376,17 +405,19 @@ function SubscriptionCard({
           <div className="flex items-center gap-2">
             <h4 className={`font-semibold ${darkMode ? "text-white" : "text-gray-900"}`}>{sub.name}</h4>
             {sub.isTrial && (
-              <span className="bg-[#007A5C] text-white text-xs px-2 py-0.5 rounded-full font-semibold">Trial</span>
+              <span className="bg-[#007A5C] text-white text-xs px-2 py-0.5 rounded-full font-semibold">
+                Trial
+              </span>
             )}
             {isDuplicate && (
               <span className="bg-[#FFD166] text-[#1E2A35] text-xs px-2 py-0.5 rounded-full font-semibold flex items-center gap-1">
-                <Copy className="w-3 h-3" />
+                <Copy aria-hidden="true" className="w-3 h-3" />
                 Duplicate
               </span>
             )}
             {unusedInfo && sub.category === "AI Tools" && sub.hasApiKey && (
               <span className="bg-[#E86A33] text-white text-xs px-2 py-0.5 rounded-full font-semibold flex items-center gap-1">
-                <Clock className="w-3 h-3" />
+                <Clock aria-hidden="true" className="w-3 h-3" />
                 Unused {unusedInfo.daysSinceLastUse}d
               </span>
             )}
@@ -395,9 +426,9 @@ function SubscriptionCard({
             <p className={`text-xs ${darkMode ? "text-gray-400" : "text-gray-500"}`}>{sub.category}</p>
             {sub.email && (
               <>
-                <span className={`text-xs ${darkMode ? "text-gray-600" : "text-gray-300"}`}>•</span>
+                <span aria-hidden="true" className={`text-xs ${darkMode ? "text-gray-600" : "text-gray-300"}`}>•</span>
                 <div className="flex items-center gap-1">
-                  <Mail className={`w-3 h-3 ${darkMode ? "text-gray-500" : "text-gray-400"}`} />
+                  <Mail aria-hidden="true" className={`w-3 h-3 ${darkMode ? "text-gray-500" : "text-gray-400"}`} />
                   <p className={`text-xs ${darkMode ? "text-gray-500" : "text-gray-400"}`}>{sub.email}</p>
                 </div>
               </>
@@ -427,18 +458,20 @@ function SubscriptionCard({
           </span>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-2" role="group" aria-label={`Actions for ${sub.name}`}>
           <button
             onClick={() => onManage && onManage(sub)}
+            aria-label={`Edit ${sub.name}`}
             className={`p-2 rounded-lg ${darkMode ? "hover:bg-[#374151] text-gray-400" : "hover:bg-gray-100 text-gray-600"}`}
           >
-            <Edit2 className="w-4 h-4" />
+            <Edit2 aria-hidden="true" className="w-4 h-4" />
           </button>
           <button
             onClick={() => onDelete(sub.id)}
+            aria-label={`Delete ${sub.name}`}
             className={`p-2 rounded-lg ${darkMode ? "hover:bg-[#E86A33]/20 text-[#E86A33]" : "hover:bg-red-50 text-red-600"}`}
           >
-            <Trash2 className="w-4 h-4" />
+            <Trash2 aria-hidden="true" className="w-4 h-4" />
           </button>
         </div>
       </div>

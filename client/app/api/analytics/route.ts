@@ -1,5 +1,5 @@
 import { type NextRequest } from "next/server"
-import { createApiRoute, createSuccessResponse, RateLimiters } from "@/lib/api"
+import { createApiRoute, createSuccessResponse, RateLimiters } from "@/lib/api/index"
 import { HttpStatus } from "@/lib/api/types"
 import { createClient } from "@/lib/supabase/server"
 
