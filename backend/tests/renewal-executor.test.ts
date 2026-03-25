@@ -1,38 +1,29 @@
 import { renewalExecutor } from '../src/services/renewal-executor';
 
-// Mock supabase
 jest.mock('../src/config/database', () => ({
   supabase: { from: jest.fn() },
 }));
 
-// Mock logger
 jest.mock('../src/config/logger', () => ({
   default: { info: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() },
   __esModule: true,
 }));
 
-// Mock blockchain service
 jest.mock('../src/services/blockchain-service', () => ({
   blockchainService: {
-    syncSubscription: jest.fn().mockResolvedValue({
-      success: true,
-      transactionHash: 'tx-hash-abc123',
-    }),
+    syncSubscription: jest.fn(),
   },
 }));
 
-// Mock DatabaseTransaction — passes the real supabase client through
 jest.mock('../src/utils/transaction', () => ({
   DatabaseTransaction: {
-    execute: jest.fn().mockImplementation((fn: (client: any) => any) => {
-      const { supabase } = require('../src/config/database');
-      return fn(supabase);
-    }),
+    execute: jest.fn(),
   },
 }));
 
 import { supabase } from '../src/config/database';
 import { blockchainService } from '../src/services/blockchain-service';
+import { DatabaseTransaction } from '../src/utils/transaction';
 
 describe('RenewalExecutor', () => {
   const mockRequest = {
@@ -56,20 +47,22 @@ describe('RenewalExecutor', () => {
     next_billing_date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
   };
 
-  function makeChain(resolvedValue: any) {
-    const chain: any = {
+  function makeChain(singleValue: any, insertValue = { data: null, error: null }) {
+    return {
       select: jest.fn().mockReturnThis(),
-      insert: jest.fn().mockResolvedValue({ data: null, error: null }),
+      insert: jest.fn().mockResolvedValue(insertValue),
       update: jest.fn().mockReturnThis(),
       delete: jest.fn().mockReturnThis(),
       eq: jest.fn().mockReturnThis(),
-      single: jest.fn().mockResolvedValue(resolvedValue),
+      single: jest.fn().mockResolvedValue(singleValue),
     };
-    return chain;
   }
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    // Re-apply after resetMocks clears everything
+    (DatabaseTransaction.execute as jest.Mock).mockImplementation(
+      (fn: (client: any) => any) => fn(supabase)
+    );
     (blockchainService.syncSubscription as jest.Mock).mockResolvedValue({
       success: true,
       transactionHash: 'tx-hash-abc123',
@@ -77,24 +70,15 @@ describe('RenewalExecutor', () => {
   });
 
   it('should execute renewal successfully', async () => {
-    let callCount = 0;
+    let approvalCalls = 0;
     (supabase.from as jest.Mock).mockImplementation((table: string) => {
       if (table === 'renewal_approvals') {
-        callCount++;
-        if (callCount === 1) {
-          // checkApproval select
-          return makeChain({ data: validApproval, error: null });
-        }
-        // logSuccess insert
+        approvalCalls++;
+        if (approvalCalls === 1) return makeChain({ data: validApproval, error: null });
         return makeChain({ data: null, error: null });
       }
-      if (table === 'subscriptions') {
-        // validateBillingWindow + updateSubscription
-        return makeChain({ data: validSubscription, error: null });
-      }
-      if (table === 'renewal_logs') {
-        return makeChain({ data: null, error: null });
-      }
+      if (table === 'subscriptions') return makeChain({ data: validSubscription, error: null });
+      if (table === 'renewal_logs') return makeChain({ data: null, error: null });
       return makeChain({ data: null, error: null });
     });
 
@@ -107,12 +91,8 @@ describe('RenewalExecutor', () => {
 
   it('should fail with invalid approval', async () => {
     (supabase.from as jest.Mock).mockImplementation((table: string) => {
-      if (table === 'renewal_approvals') {
-        return makeChain({ data: null, error: { message: 'Not found' } });
-      }
-      if (table === 'renewal_logs') {
-        return makeChain({ data: null, error: null });
-      }
+      if (table === 'renewal_approvals') return makeChain({ data: null, error: { message: 'Not found' } });
+      if (table === 'renewal_logs') return makeChain({ data: null, error: null });
       return makeChain({ data: null, error: null });
     });
 
@@ -123,21 +103,15 @@ describe('RenewalExecutor', () => {
   });
 
   it('should fail when billing window invalid', async () => {
-    const farFutureSubscription = {
+    const farFuture = {
       ...validSubscription,
       next_billing_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
     };
 
     (supabase.from as jest.Mock).mockImplementation((table: string) => {
-      if (table === 'renewal_approvals') {
-        return makeChain({ data: validApproval, error: null });
-      }
-      if (table === 'subscriptions') {
-        return makeChain({ data: farFutureSubscription, error: null });
-      }
-      if (table === 'renewal_logs') {
-        return makeChain({ data: null, error: null });
-      }
+      if (table === 'renewal_approvals') return makeChain({ data: validApproval, error: null });
+      if (table === 'subscriptions') return makeChain({ data: farFuture, error: null });
+      if (table === 'renewal_logs') return makeChain({ data: null, error: null });
       return makeChain({ data: null, error: null });
     });
 
@@ -149,12 +123,8 @@ describe('RenewalExecutor', () => {
 
   it('should retry on retryable failures', async () => {
     (supabase.from as jest.Mock).mockImplementation((table: string) => {
-      if (table === 'renewal_approvals') {
-        return makeChain({ data: null, error: { message: 'Not found' } });
-      }
-      if (table === 'renewal_logs') {
-        return makeChain({ data: null, error: null });
-      }
+      if (table === 'renewal_approvals') return makeChain({ data: null, error: { message: 'Not found' } });
+      if (table === 'renewal_logs') return makeChain({ data: null, error: null });
       return makeChain({ data: null, error: null });
     });
 
