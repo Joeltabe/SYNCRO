@@ -17,11 +17,13 @@
     "@supabase/supabase-js": "^2.47.10",
     "bcryptjs": "^2.4.3",
     "@types/cookie-parser": "^1.4.10",
+    "@types/uuid": "^10.0.0",
     "cookie-parser": "^1.4.7",
     "dotenv": "^16.4.5",
     "express": "^5.2.1",
     "node-cron": "^3.0.3",
     "nodemailer": "^6.9.9",
+    "uuid": "^13.0.0",
     "web-push": "^3.6.7",
     "winston": "^3.14.0",
     "zod": "^3.23.8"

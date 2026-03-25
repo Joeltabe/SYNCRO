@@ -57,3 +57,33 @@ export interface SubscriptionUpdateInput {
   notes?: string;
   tags?: string[];
 }
+
+/** Allowlist of fields a user is permitted to update.
+ *  Does NOT include id, user_id, created_at — those can never be user-modified. */
+export interface SubscriptionUpdateAllowlist {
+  name?: string;
+  provider?: string;
+  merchant_id?: string;
+  price?: number;
+  billing_cycle?: Subscription['billing_cycle'];
+  status?: Subscription['status'];
+  next_billing_date?: string;
+  category?: string;
+  logo_url?: string;
+  website_url?: string;
+  renewal_url?: string;
+  notes?: string;
+  tags?: string[];
+}
+
+export interface ListSubscriptionsOptions {
+  status?: Subscription['status'];
+  category?: string;
+  limit?: number;
+  offset?: number;
+}
+
+export interface ListSubscriptionsResult {
+  subscriptions: Subscription[];
+  total: number;
+}

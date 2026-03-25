@@ -27,6 +27,14 @@ jest.mock('../src/services/blockchain-service', () => ({
   },
 }));
 
+// Mock renewal cooldown service
+jest.mock('../src/services/renewal-cooldown-service', () => ({
+  renewalCooldownService: {
+    checkCooldown: () => Promise.resolve({ isOnCooldown: false, canRetry: true, timeRemainingSeconds: 0, lastAttemptAt: null }),
+    recordRenewalAttempt: () => Promise.resolve({ new_attempt_at: new Date().toISOString() }),
+  },
+}));
+
 // Mock DatabaseTransaction
 jest.mock('../src/utils/transaction', () => ({
   DatabaseTransaction: {
@@ -651,13 +659,16 @@ describe('SubscriptionService', () => {
         { id: 'sub-1', name: 'Netflix', status: 'active' },
       ];
 
-      const resolvedValue = { data: mockSubscriptions, error: null, count: 1 };
-      const mockQuery = {
+      const mockQuery: any = {
         select: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
         order: jest.fn().mockReturnThis(),
         limit: jest.fn().mockReturnThis(),
-        then: jest.fn().mockImplementation((resolve: any) => Promise.resolve(resolvedValue).then(resolve)),
+        then: jest.fn().mockImplementation((resolve: any) => resolve({
+          data: mockSubscriptions,
+          error: null,
+          count: 1,
+        })),
       };
       // Make the last eq call resolve
       mockQuery.eq
@@ -678,12 +689,16 @@ describe('SubscriptionService', () => {
         { id: 'sub-1', name: 'Netflix', category: 'entertainment' },
       ];
 
-      const resolvedValue = { data: mockSubscriptions, error: null, count: 1 };
-      const mockQuery = {
+      const mockQuery: any = {
         select: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
         order: jest.fn().mockReturnThis(),
         limit: jest.fn().mockReturnThis(),
+        then: jest.fn().mockImplementation((resolve: any) => resolve({
+          data: mockSubscriptions,
+          error: null,
+          count: 1,
+        })),
       };
       mockQuery.eq
         .mockReturnValueOnce(mockQuery) // user_id eq
@@ -779,6 +794,8 @@ describe('SubscriptionService', () => {
           data: mockSubscription,
           error: null,
         }),
+        update: jest.fn().mockReturnThis(),
+        insert: jest.fn().mockResolvedValue({ data: null, error: null }),
       };
 
       (supabase.from as jest.Mock).mockReturnValue(mockQuery);
@@ -818,6 +835,8 @@ describe('SubscriptionService', () => {
           data: mockSubscription,
           error: null,
         }),
+        update: jest.fn().mockReturnThis(),
+        insert: jest.fn().mockResolvedValue({ data: null, error: null }),
       };
 
       (supabase.from as jest.Mock).mockReturnValue(mockQuery);

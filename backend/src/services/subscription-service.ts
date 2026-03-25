@@ -4,17 +4,22 @@ import { renewalCooldownService } from "./renewal-cooldown-service";
 import logger from "../config/logger";
 import { DatabaseTransaction } from "../utils/transaction";
 import type {
+  Subscription,
   SubscriptionCreateInput,
   SubscriptionUpdateInput,
+  ListSubscriptionsOptions,
+  ListSubscriptionsResult,
 } from "../types/subscription";
 
+export interface BlockchainSyncResult {
+  success: boolean;
+  transactionHash?: string;
+  error?: string;
+}
+
 export interface SubscriptionSyncResult {
-  subscription: any;
-  blockchainResult?: {
-    success: boolean;
-    transactionHash?: string;
-    error?: string;
-  };
+  subscription: Subscription;
+  blockchainResult?: BlockchainSyncResult;
   syncStatus: "synced" | "partial" | "failed";
 }
 
@@ -121,15 +126,39 @@ export class SubscriptionService {
         if (fetchError || !existing) {
           throw new Error("Subscription not found or access denied");
         }
-        // For now, we use updated_at as a simple version check
-        const updateData: any = {
-          ...input,
+        // Explicit allowlist — prevents field injection attacks by never spreading raw input
+        const {
+          name,
+          provider,
+          merchant_id,
+          price,
+          billing_cycle,
+          status,
+          next_billing_date,
+          category,
+          logo_url,
+          website_url,
+          renewal_url,
+          notes,
+          tags,
+        } = input;
+
+        const updateData: Partial<SubscriptionUpdateInput> & { updated_at: string } = {
+          ...(name !== undefined && { name }),
+          ...(provider !== undefined && { provider }),
+          ...(merchant_id !== undefined && { merchant_id }),
+          ...(price !== undefined && { price }),
+          ...(billing_cycle !== undefined && { billing_cycle }),
+          ...(status !== undefined && { status }),
+          ...(next_billing_date !== undefined && { next_billing_date }),
+          ...(category !== undefined && { category }),
+          ...(logo_url !== undefined && { logo_url }),
+          ...(website_url !== undefined && { website_url }),
+          ...(renewal_url !== undefined && { renewal_url }),
+          ...(notes !== undefined && { notes }),
+          ...(tags !== undefined && { tags }),
           updated_at: new Date().toISOString(),
         };
-
-        Object.keys(updateData).forEach(
-          (key) => updateData[key] === undefined && delete updateData[key],
-        );
 
         const { data: subscription, error: updateError } = await client
           .from("subscriptions")
@@ -271,7 +300,7 @@ export class SubscriptionService {
 
   // Get subscription by ID (with ownership check)
 
-  async getSubscription(userId: string, subscriptionId: string): Promise<any> {
+  async getSubscription(userId: string, subscriptionId: string): Promise<Subscription> {
     const { data: subscription, error } = await supabase
       .from("subscriptions")
       .select("*")
@@ -289,13 +318,8 @@ export class SubscriptionService {
   // List user's subscriptions
   async listSubscriptions(
     userId: string,
-    options: {
-      status?: string;
-      category?: string;
-      limit?: number;
-      offset?: number;
-    } = {},
-  ): Promise<{ subscriptions: any[]; total: number }> {
+    options: ListSubscriptionsOptions = {},
+  ): Promise<ListSubscriptionsResult> {
     let query = supabase
       .from("subscriptions")
       .select("*", { count: "exact" })

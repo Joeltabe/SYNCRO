@@ -22,7 +22,6 @@ if (missing.length > 0) {
     '\nPlease add them to your .env.local file (locally) or to the Vercel project settings.\n' +
     'See client/.env.example for the full list of required variables.\n'
   );
-  // In CI without secrets configured, warn but don't block the pipeline
   if (process.env.CI) {
     console.warn('⚠️  Running in CI without secrets — skipping hard failure.');
     process.exit(0);

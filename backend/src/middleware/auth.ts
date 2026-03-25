@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { supabase } from '../config/database';
 import logger from '../config/logger';
+import { setRequestUserId } from './requestContext';
 
 export interface AuthenticatedRequest extends Request {
   user?: {
@@ -50,11 +51,12 @@ export async function authenticate(
       return;
     }
 
-    // Attach user to request
+    // Attach user to request and propagate to log context
     req.user = {
       id: user.id,
       email: user.email || '',
     };
+    setRequestUserId(user.id);
 
     next();
   } catch (error) {
@@ -92,6 +94,7 @@ export async function optionalAuthenticate(
           id: user.id,
           email: user.email || '',
         };
+        setRequestUserId(user.id);
       }
     }
 

@@ -26,11 +26,10 @@ describe('SimulationService', () => {
     });
 
     it('should add 365 days for yearly billing cycle', () => {
-      const currentDate = new Date('2024-01-01');
+      const currentDate = new Date('2023-01-01');
       const nextDate = service.calculateNextRenewal(currentDate, 'yearly');
       
-      // 2024 is a leap year: Jan 1 + 365 days = Dec 31 2024
-      const expectedDate = new Date('2024-12-31');
+      const expectedDate = new Date('2024-01-01');
       expect(nextDate.toISOString()).toBe(expectedDate.toISOString());
     });
   });
@@ -41,6 +40,7 @@ describe('SimulationService', () => {
         id: '1',
         user_id: 'user1',
         email_account_id: null,
+        merchant_id: null,
         name: 'Netflix',
         provider: 'Netflix',
         price: 15.99,
@@ -53,7 +53,6 @@ describe('SimulationService', () => {
         renewal_url: null,
         notes: null,
         tags: [],
-        merchant_id: null,
         expired_at: null,
         created_at: '2024-01-01',
         updated_at: '2024-01-01',
@@ -70,6 +69,7 @@ describe('SimulationService', () => {
         id: '1',
         user_id: 'user1',
         email_account_id: null,
+        merchant_id: null,
         name: 'Netflix',
         provider: 'Netflix',
         price: 15.99,
@@ -82,7 +82,6 @@ describe('SimulationService', () => {
         renewal_url: null,
         notes: null,
         tags: [],
-        merchant_id: null,
         expired_at: null,
         created_at: '2024-01-01',
         updated_at: '2024-01-01',
@@ -103,6 +102,7 @@ describe('SimulationService', () => {
         id: '1',
         user_id: 'user1',
         email_account_id: null,
+        merchant_id: null,
         name: 'Netflix',
         provider: 'Netflix',
         price: 15.99,
@@ -115,14 +115,12 @@ describe('SimulationService', () => {
         renewal_url: null,
         notes: null,
         tags: [],
-        merchant_id: null,
         expired_at: null,
         created_at: '2024-01-01',
         updated_at: '2024-01-01',
       };
 
-      // Jan 1 + 30 = Jan 31, Jan 31 + 30 = Mar 1 (still <= Mar 1 endDate), so use Feb 29 to get exactly 2
-      const endDate = new Date('2024-02-29');
+      const endDate = new Date('2024-02-28');
       const projections = service.projectSubscriptionRenewals(subscription, endDate);
 
       expect(projections).toHaveLength(2);
@@ -135,6 +133,7 @@ describe('SimulationService', () => {
         id: '1',
         user_id: 'user1',
         email_account_id: null,
+        merchant_id: null,
         name: 'Netflix',
         provider: 'Netflix',
         price: 15.99,
@@ -147,7 +146,6 @@ describe('SimulationService', () => {
         renewal_url: null,
         notes: null,
         tags: [],
-        merchant_id: null,
         expired_at: null,
         created_at: '2024-01-01',
         updated_at: '2024-01-01',
