@@ -5,6 +5,8 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import logger from './config/logger';
+import { requestIdMiddleware } from './middleware/requestContext';
+import { requestLoggerMiddleware } from './middleware/requestLogger';
 import { schedulerService } from './services/scheduler';
 import { reminderEngine } from './services/reminder-engine';
 import subscriptionRoutes from './routes/subscriptions';
@@ -12,7 +14,7 @@ import riskScoreRoutes from './routes/risk-score';
 import simulationRoutes from './routes/simulation';
 import merchantRoutes from './routes/merchants';
 import teamRoutes from './routes/team';
-import mfaRoutes from './routes/mfa';
+import auditRoutes from './routes/audit';
 import { monitoringService } from './services/monitoring-service';
 import { healthService } from './services/health-service';
 import { eventListener } from './services/event-listener';
@@ -41,6 +43,11 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Request tracing — must come before routes so every log line carries requestId
+app.use(requestIdMiddleware);
+app.use(requestLoggerMiddleware);
+
+
 import { adminAuth } from './middleware/admin';
 
 // Health check endpoint
@@ -54,7 +61,7 @@ app.use('/api/risk-score', riskScoreRoutes);
 app.use('/api/simulation', simulationRoutes);
 app.use('/api/merchants', merchantRoutes);
 app.use('/api/team', teamRoutes);
-app.use('/api', mfaRoutes);
+app.use('/api/audit', auditRoutes);
 
 // API Routes (Public/Standard)
 app.get('/api/reminders/status', (req, res) => {

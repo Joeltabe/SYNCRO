@@ -20,7 +20,7 @@
       "jest"
     ]
   },
-  "include": [ "src/**/*", "tests/**/*"],
+  "include": [ "src/**/*", "tests/**/*", "services/subscription-classifier.js"],
   "exclude": [
     "node_modules",
     "dist",

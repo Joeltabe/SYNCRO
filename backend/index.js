@@ -2,6 +2,7 @@ const express = require('express')
 const dotenv = require('dotenv')
 const gmailRoutes = require('./routes/integrations/gmail')
 const outlookRoutes = require('./routes/integrations/outlook')
+const classificationRoutes = require('./routes/integrations/classification-routes')
 
 dotenv.config()
 
@@ -16,6 +17,7 @@ app.get('/health', (_req, res) => {
 
 app.use('/api/integrations/gmail', gmailRoutes)
 app.use('/api/integrations/outlook', outlookRoutes)
+app.use('/api/subscriptions', classificationRoutes)
 
 app.use((err, _req, res, _next) => {
   const status = err.status || 500
